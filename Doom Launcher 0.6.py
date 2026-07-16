@@ -1,6 +1,6 @@
 import os
 import subprocess
-
+"'"
 def debgprint(text):
     print("[DEBUG_start]================================================")
     print(text)
@@ -8,21 +8,28 @@ def debgprint(text):
 
 
 def listar(folder, tyype=0):
-    opcione = []
-    opciones = []
-    opcione.append("Ninguno")
+    opciones = ["Ninguno"]
     if not os.path.isdir(folder):
         print(f"No existe la carpeta {folder}")
-        return []  # FIX: devolvía None, y eso rompía el for de más adelante
+        return []
     for archivo in os.listdir(folder):
-        opcione.append(archivo)
+        opciones.append(archivo)
+
     if tyype == 1:
-        for opcion in opcione:
-            if opcion.lower().endswith(".exe") or opcion == "Ninguno":
-                opciones.append(opcion)
+        result = ["Ninguno"]
+        for opcion in opciones:
+            if opcion == "Ninguno":
+                continue
+            ruta = os.path.join(folder, opcion)  # FIX: unir folder + nombre antes de listar/chequear
+            if os.path.isdir(ruta):
+                for opcion_real in os.listdir(ruta):
+                    if opcion_real.lower().endswith(".exe"):
+                        result.append(os.path.join(opcion, opcion_real))  # FIX: guarda subcarpeta/exe.exe
+            elif opcion.lower().endswith(".exe"):  # FIX: soporta exe suelto directo en Ports/
+                result.append(opcion)
+        return result
     else:
-        opciones = opcione
-    return opciones
+        return opciones
 
 
 def select_port(base_folder):
@@ -34,7 +41,7 @@ def select_port(base_folder):
 
 
 def select_convertion(base_folder):
-    opciones = listar(os.path.join(base_folder, "Midconv"))  # FIX: nombre de carpeta consistente con el main
+    opciones = listar(os.path.join(base_folder, "Midcon"))  # FIX: nombre de carpeta consistente con el main
     for index, opcion in enumerate(opciones):
         print(f"{index}: {opcion}")
     # FIX: indexaba "opcion" (string suelto del for) en vez de "opciones" (la lista)
@@ -50,10 +57,10 @@ def select_modes(base_folder):
     mode = None  # FIX: inicializar antes del while (si no, NameError en la primera evaluación)
     while mode != "Ninguno":  # FIX: comparar strings con != en vez de "is not"
         # FIX: indexaba "opcion" en vez de "opciones"
-        mode = opciones[int(input("Desea elegir algun modo?\n*Nota: Estos son stackeables, usar con atención a compatibilidades.\n"))]
+        mode =opciones[int(input("Desea elegir algun modo?\n*Nota: Estos son stackeables, usar con atención a compatibilidades.\n"))]
         if mode != "Ninguno":
             modes.append(os.path.join(base_folder, "Modes", mode))
-    return " ".join(modes)
+    return '"' + " ".join(modes) + '"'
 
 
 def select_maps(base_folder):
@@ -90,12 +97,12 @@ if __name__ == "__main__":
 
         conv = select_convertion(base_folder)
         if conv != "Ninguno":
-            convertion = os.path.join(base_folder, "Midconv", conv)
+            convertion = '"' + os.path.join(base_folder, "Midcon", conv) + '"'
         else:
             modes = select_modes(base_folder)
             maps = select_maps(base_folder)
             if maps:
-                map_pack = os.path.join(base_folder, "Maps", maps)
+                map_pack = '"' + os.path.join(base_folder, "Maps", maps) + '"'
 
         debgprint(port)
         debgprint(convertion)
